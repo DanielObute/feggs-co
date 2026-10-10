@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/feggs-co/static/css/main.7f62b1f1.css",
-    "main.js": "/feggs-co/static/js/main.1e0f20bb.js",
+    "main.js": "/feggs-co/static/js/main.c774a2b3.js",
     "static/js/453.e0f67e15.chunk.js": "/feggs-co/static/js/453.e0f67e15.chunk.js",
     "static/media/new-rolls-royce.jpg": "/feggs-co/static/media/new-rolls-royce.0452f743d4c5b638f720.jpg",
     "static/media/feggs-logo-transparent.png": "/feggs-co/static/media/feggs-logo-transparent.a70e24b8157ce30f5480.png",
@@ -9,11 +9,11 @@
     "static/media/ferrari-purosangue-home.webp": "/feggs-co/static/media/ferrari-purosangue-home.ae1ed37401459ea711a3.webp",
     "index.html": "/feggs-co/index.html",
     "main.7f62b1f1.css.map": "/feggs-co/static/css/main.7f62b1f1.css.map",
-    "main.1e0f20bb.js.map": "/feggs-co/static/js/main.1e0f20bb.js.map",
+    "main.c774a2b3.js.map": "/feggs-co/static/js/main.c774a2b3.js.map",
     "453.e0f67e15.chunk.js.map": "/feggs-co/static/js/453.e0f67e15.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.7f62b1f1.css",
-    "static/js/main.1e0f20bb.js"
+    "static/js/main.c774a2b3.js"
   ]
 }
