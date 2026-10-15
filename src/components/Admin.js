@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { db } from '../Firebase'
+import { db, auth } from '../Firebase'
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'firebase/auth'
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore'
 
 const emptyCarForm = {
@@ -43,7 +48,9 @@ const uploadImageToCloudinary = async (file) => {
           return null
         }
       }
-  const [isAdmin, setIsAdmin] = useState(localStorage.getItem('feggs_admin') === 'true')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
@@ -96,6 +103,22 @@ const uploadImageToCloudinary = async (file) => {
   const [editingCarId, setEditingCarId] = useState(null)
   const [showCarForm, setShowCarForm] = useState(false)
 
+
+  const ADMIN_UID = '3Ipq5JAA3DO1kfYVq2AeDwsqaG02'
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAdmin(user?.uid === ADMIN_UID)
+      setAuthLoading(false)
+  
+      if (user && user.uid !== ADMIN_UID) {
+        signOut(auth).catch(console.error)
+      }
+    })
+  
+    return unsubscribe
+  }, [])
+  
   useEffect(() => {
     if (!isAdmin) return
     const unsub1 = onSnapshot(collection(db, 'cars'), s => setCars(s.docs.map(d => ({ id: d.id, ...d.data() }))))
@@ -105,22 +128,40 @@ const uploadImageToCloudinary = async (file) => {
     return () => { unsub1(); unsub2(); unsub3(); unsub4() }
   }, [isAdmin])
 
-  const handleLogin = (e) => {
-    e.preventDefault()
-    if (password === process.env.REACT_APP_ADMIN_PASSWORD) {
-      localStorage.setItem('feggs_admin', 'true')
-      setIsAdmin(true)
-      setLoginError('')
-    } else {
-      setLoginError('Incorrect password')
-    }
-  }
+ 
+const handleLogin = async (e) => {
+  e.preventDefault()
+  setLoginError('')
 
-  const confirmLogout = () => {
-    localStorage.removeItem('feggs_admin')
-    setIsAdmin(false)
-    setShowLogoutConfirm(false)
+  try {
+    const result = await signInWithEmailAndPassword(
+      auth,
+      email.trim(),
+      password
+    )
+
+    console.log('Firebase login succeeded. UID:', result.user.uid)
+    console.log('Expected admin UID:', ADMIN_UID)
+
+    setPassword('')
+  } catch (error) {
+    console.error('Firebase login failed:', error.code, error.message)
+    setLoginError(`Login failed: ${error.code || error.message}`)
   }
+}
+    
+    const confirmLogout = async () => {
+    try {
+    await signOut(auth)
+    setShowLogoutConfirm(false)
+    setPassword('')
+    setEmail('')
+    } catch (error) {
+    console.error('Admin logout error:', error)
+    setLoginError('Logout failed. Please try again.')
+    }
+    }
+
 
   const openAddCar = () => {
     setCarForm(emptyCarForm)
@@ -166,12 +207,33 @@ const uploadImageToCloudinary = async (file) => {
     await updateDoc(doc(db, collectionName, id), { status })
   }
 
+  if (authLoading) {
+  return (
+    <div style={{ padding: '40px', textAlign: 'center' }}>
+      Checking admin session...
+    </div>
+  )
+}
   if (!isAdmin) {
     return (
       <div style={{ minHeight: '100vh', background: '#17181C', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <form onSubmit={handleLogin} style={{ background: 'white', borderRadius: '10px', padding: '40px', width: '100%', maxWidth: '380px' }}>
           <p style={{ fontFamily: 'Bodoni Moda, serif', fontSize: '24px', color: '#1F2937', margin: '0 0 4px' }}>Feggs & Co</p>
           <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#6B7280', margin: '0 0 24px' }}>Admin Access</p>
+
+          <input
+            type="email"
+            placeholder="Admin Email"
+            value={email}
+            onChange={e => {
+              setEmail(e.target.value)
+              setLoginError('')
+            }}
+            required
+            autoComplete="username"
+            style={{ width: '100%', padding: '12px 14px', borderRadius: '4px', border: '1.5px solid #E5E7EB', fontFamily: 'Inter, sans-serif', fontSize: '14px', boxSizing: 'border-box', marginBottom: '12px' }}
+          />
+
           <input
             type="password"
             placeholder="Admin Password"
